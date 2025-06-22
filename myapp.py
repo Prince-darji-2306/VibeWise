@@ -11,21 +11,19 @@ from youtubesearchpython import VideosSearch
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 CONFIG = st.secrets['MODEL']
-
-path = snapshot_download(
-    repo_id=CONFIG,
-    repo_type="model",
-    local_dir="hf_model",
-    allow_patterns=["model/song_recommender_model/*"]
-)
-
-MODEL_PATH = os.path.join(path, "model", "song_recommender_model")
 INDEX_PATH = hf_hub_download(repo_id=CONFIG, filename="model/song_index.faiss")
 CSV_PATH = hf_hub_download(repo_id=CONFIG, filename="model/song_metadata.csv")
 
 @st.cache_resource
 def load_model():
-    return SentenceTransformer(MODEL_PATH)
+    snapshot_dir = snapshot_download(
+        repo_id="Prince-2025/VibeWise-Model",
+        repo_type="model",
+        local_dir="hf_model",
+        allow_patterns=["model/song_recommender_model/*"]
+    )
+    model_dir = os.path.join(snapshot_dir, "model", "song_recommender_model")
+    return SentenceTransformer(model_dir)
 
 @st.cache_resource
 def load_index():
