@@ -35,7 +35,7 @@ def load_index():
 def load_data():
     df = pd.read_csv(CSV_PATH)
     if 'searchq' not in df.columns:
-        df['searchq'] = (df['song'] + " " + df['artist']).str.strip().str.lower()
+        df['searchq'] = (df['song'] + " by " + df['artist']).str.strip()
     return df
 
 def recommend(query, top_k=5):
