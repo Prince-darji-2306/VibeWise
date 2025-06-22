@@ -4,13 +4,17 @@ import requests
 import streamlit as st
 import pandas as pd
 from sklearn.preprocessing import normalize
+from huggingface_hub import hf_hub_download
 from sentence_transformers import SentenceTransformer
 from youtubesearchpython import VideosSearch
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-MODEL_PATH = "model/song_recommender_model"
-INDEX_PATH = "model/song_index.faiss"
-CSV_PATH = "model/song_metadata.csv"
+REPO_ID = st.secrets['MODEL']
+
+model_config_path = hf_hub_download(repo_id=REPO_ID, filename="model/song_recommender_model/config.json")
+MODEL_PATH = os.path.dirname(model_config_path)
+INDEX_PATH = hf_hub_download(repo_id=REPO_ID, filename="model/song_index.faiss")
+CSV_PATH = hf_hub_download(repo_id=REPO_ID, filename="model/song_metadata.csv")
 
 @st.cache_resource
 def load_model():
