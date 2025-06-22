@@ -5,21 +5,23 @@ import streamlit as st
 import pandas as pd
 from sklearn.preprocessing import normalize
 from huggingface_hub import hf_hub_download
+from huggingface_hub import snapshot_download
 from sentence_transformers import SentenceTransformer
 from youtubesearchpython import VideosSearch
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-REPO_ID = st.secrets['MODEL']
+CONFIG = st.secrets['MODEL']
 
-model_config_path = hf_hub_download(
-    repo_id=REPO_ID,
-    filename="song_recommender_model/config.json",  # ✅ NO extra "model/"
-    subfolder="model",                              # ✅ sets correct root
-    repo_type="model"
+path = snapshot_download(
+    repo_id=CONFIG,
+    repo_type="model",
+    local_dir="hf_model",
+    allow_patterns=["model/song_recommender_model/*"]
 )
-MODEL_PATH = os.path.dirname(model_config_path)
-INDEX_PATH = hf_hub_download(repo_id=REPO_ID, filename="model/song_index.faiss")
-CSV_PATH = hf_hub_download(repo_id=REPO_ID, filename="model/song_metadata.csv")
+
+MODEL_PATH = os.path.join(path, "model", "song_recommender_model")
+INDEX_PATH = hf_hub_download(repo_id=CONFIG, filename="model/song_index.faiss")
+CSV_PATH = hf_hub_download(repo_id=CONFIG, filename="model/song_metadata.csv")
 
 @st.cache_resource
 def load_model():
