@@ -11,7 +11,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 REPO_ID = st.secrets['MODEL']
 
-model_config_path = hf_hub_download(repo_id=REPO_ID, filename="model/song_recommender_model/config.json")
+model_config_path = hf_hub_download(
+    repo_id=REPO_ID,
+    filename="song_recommender_model/config.json",  # ✅ NO extra "model/"
+    subfolder="model",                              # ✅ sets correct root
+    repo_type="model"
+)
 MODEL_PATH = os.path.dirname(model_config_path)
 INDEX_PATH = hf_hub_download(repo_id=REPO_ID, filename="model/song_index.faiss")
 CSV_PATH = hf_hub_download(repo_id=REPO_ID, filename="model/song_metadata.csv")
