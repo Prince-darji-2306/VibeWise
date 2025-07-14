@@ -228,7 +228,7 @@ elif st.session_state.mode == "Detect Mood":
                     st.success(f"**{song_emotion}** songs")
                     st.session_state.query_input = song_emotion + ' songs'
                     st.session_state.mode = 'Set Vibe'
-                    time.delay(2)
+                    time.sleep(2)
                     st.rerun()
 
             except Exception as e:
