@@ -100,7 +100,7 @@ if st.sidebar.button("Detect Mood 🎭"):
 # ============================
 if st.session_state.mode == "Set Vibe":
     st.markdown("<h1 style='padding-bottom:0px;'>🎶 Song Recommendation</h1>", unsafe_allow_html=True)
-    col1, col2, col3, col4 = st.columns([1,6,2,1])
+    col2, col3 = st.columns([6,2])
 
     with col2:
         query_input = st.text_input(
