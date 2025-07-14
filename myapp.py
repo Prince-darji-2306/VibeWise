@@ -1,4 +1,5 @@
 import os
+import time
 import faiss
 import requests
 import numpy as np
@@ -222,12 +223,12 @@ elif st.session_state.mode == "Detect Mood":
                     song_emotion = 'chill'
 
                 
-                st.subheader("🎶 Detected Vibe:")
-                st.success(f"**{song_emotion}** songs")
-
-                if st.button('Now Lets set you VIBE.'):
+                if song_emotion:
+                    st.subheader("🎶 Detected Vibe:")
+                    st.success(f"**{song_emotion}** songs")
                     st.session_state.query_input = song_emotion + ' songs'
-                    st.session_state.mode = 'Detect Mood'
+                    st.session_state.mode = 'Set Vibe'
+                    time.delay(2)
                     st.rerun()
 
             except Exception as e:
