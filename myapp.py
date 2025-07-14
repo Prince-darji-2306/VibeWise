@@ -1,8 +1,11 @@
 import os
 import faiss
 import requests
-import streamlit as st
+import numpy as np
 import pandas as pd
+from PIL import Image
+import streamlit as st
+from deepface import DeepFace
 from sklearn.preprocessing import normalize
 from huggingface_hub import hf_hub_download
 from huggingface_hub import snapshot_download
@@ -68,6 +71,8 @@ if "results" not in st.session_state:
     st.session_state.results = []
 if "video_url" not in st.session_state:
     st.session_state.video_url = ""
+if "query_input" not in st.session_state:
+    st.session_state.query_input = ""
 
 st.set_page_config(page_title="VibeWise | Discover Your Next Favorite Song", layout="wide",page_icon='static/img/icon.png')
 
@@ -86,6 +91,8 @@ if st.sidebar.button("Song 🎬"):
         st.session_state.mode = "Song"
     else:
         st.warning("No video selected!")
+if st.sidebar.button("Detect Mood 🎭"):
+    st.session_state.mode = "Detect Mood"
 
 # ============================
 # MODE: SET VIBE
@@ -169,3 +176,60 @@ elif st.session_state.mode == "Song":
     if st.button("🔙 Back to Set Vibe"):
         st.session_state.mode = "Set Vibe"
         st.rerun()
+
+# ============================
+# MODE: DETECT MOOD
+# ============================
+elif st.session_state.mode == "Detect Mood":
+    st.markdown("<h1>🎭Mood Detection</h1>", unsafe_allow_html=True)
+    st.write("""
+    1. **Click “Photo”** to check your mood.  
+    4. Then press **“Now Lets set you VIBE”** to get your song recommendations.  
+    """)
+
+    img_file_buffer = st.camera_input("Take a photo")
+
+    if img_file_buffer is not None:
+        image = Image.open(img_file_buffer)
+        img_array = np.array(image)
+
+        with st.spinner("Analyzing your mood..."):
+            try:
+                result = DeepFace.analyze(
+                    img_array,
+                    actions=['emotion'],
+                    enforce_detection=True
+                )[0]
+
+                detected_emotion = result['dominant_emotion']
+                confidence = result['emotion'][detected_emotion]
+
+                emotion_mapping = {
+                    'happy': 'happy',
+                    'sad': 'sad',
+                    'angry': 'angry',
+                    'neutral': 'chill',
+                    'surprise': 'energetic',
+                    'fear': 'motivational',
+                    'disgust': 'romantic'
+                }
+
+                song_emotion = emotion_mapping.get(detected_emotion.lower(), 'chill')
+
+                if song_emotion == 'happy' and confidence < 85:
+                    song_emotion = 'romantic'
+                elif song_emotion == 'sad' and confidence < 80:
+                    song_emotion = 'chill'
+
+                
+                st.subheader("🎶 Detected Vibe:")
+                st.success(f"**{song_emotion}** songs")
+
+                if st.button('Now Lets set you VIBE.'):
+                    st.session_state.query_input = song_emotion + ' songs'
+                    st.session_state.mode = 'Detect Mood'
+                    st.rerun()
+
+            except Exception as e:
+                st.error(f"Face analysis failed: {str(e)}")
+
