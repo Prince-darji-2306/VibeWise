@@ -6,4 +6,10 @@ sentence-transformers==4.1.0
 scikit-learn==1.7.0
 youtube-search-python==1.6.6
 httpx==0.27.1
-streamlit
+streamlit==1.32.2
+deepface==0.0.87
+tensorflow==2.15.0
+keras==2.15.0
+mtcnn==0.1.1
+Pillow==10.3.0
+numpy==1.26.4
