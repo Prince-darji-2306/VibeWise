@@ -112,7 +112,7 @@ h1
     margin-top:28px;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 720px) {
     .mbutton
     {
         display: none;

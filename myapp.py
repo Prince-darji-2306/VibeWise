@@ -74,6 +74,8 @@ if "video_url" not in st.session_state:
     st.session_state.video_url = ""
 if "query_input" not in st.session_state:
     st.session_state.query_input = ""
+if "user_mood" not in st.session_state:
+    st.session_state.user_mood = None
 
 st.set_page_config(page_title="VibeWise | Discover Your Next Favorite Song", layout="wide",page_icon='static/img/icon.png')
 
@@ -123,7 +125,7 @@ if st.session_state.mode == "Set Vibe":
     with col3:
 
         st.markdown("<div class='mbutton'></div>", unsafe_allow_html=True)
-        if st.button("Recommend", use_container_width=True) and query_input.strip() != '':
+        if st.session_state.user_mood or st.button("Recommend", use_container_width=True) and query_input.strip() != '':
             with st.spinner("Setting Vibe..."):
                 model = load_model()
                 index = load_index()
@@ -144,7 +146,7 @@ if st.session_state.mode == "Set Vibe":
                 with ThreadPoolExecutor(max_workers=5) as ex:
                     futures = [ex.submit(enrich, row) for _, row in recs.iterrows()]
                     results = [f.result() for f in as_completed(futures)]
-
+                st.session_state.user_mood = None
                 st.session_state.results = results
 
     # Show results
@@ -225,10 +227,11 @@ elif st.session_state.mode == "Detect Mood":
                 
                 if song_emotion:
                     st.subheader("🎶 Detected Vibe:")
-                    st.success(f"**{song_emotion}** songs")
+                    st.success(f"**{song_emotion}** Songs, **{detected_emotion}** Mood")
                     st.session_state.query_input = song_emotion + ' songs'
+                    st.session_state.user_mood = True
                     st.session_state.mode = 'Set Vibe'
-                    time.sleep(2)
+                    time.sleep(3)
                     st.rerun()
 
             except Exception as e:
