@@ -125,7 +125,7 @@ if st.session_state.mode == "Set Vibe":
     with col3:
 
         st.markdown("<div class='mbutton'></div>", unsafe_allow_html=True)
-        if st.session_state.user_mood or st.button("Recommend", use_container_width=True) and query_input.strip() != '':
+        if st.button("Recommend", use_container_width=True) and query_input.strip() != '' or st.session_state.user_mood:
             with st.spinner("Setting Vibe..."):
                 model = load_model()
                 index = load_index()
