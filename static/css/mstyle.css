@@ -1,8 +1,8 @@
 *
-    {
+{
     margin:0px;
     padding:0px;
-    }
+}
 
 body {
     font-family: Arial, sans-serif;
@@ -84,14 +84,12 @@ body {
 }
 .card-link,
 .card-link:visited {
-text-decoration: none !important;
+    text-decoration: none !important;
 }
-
-/* Ensure no underline on hover/focus either */
 .card-link:hover,
 .card-link:focus {
-text-decoration: none !important;
-outline: none;
+    text-decoration: none !important;
+    outline: none;
 }
  
 h1
@@ -112,7 +110,13 @@ h1
     margin-top:28px;
 }
 
-@media (max-width: 720px) {
+.custom-video-container iframe {
+    height: 450px !important;
+    width: 100% !important;
+    border-radius: 10px;
+}
+
+@media (max-width: 640px) {
     .mbutton
     {
         display: none;
