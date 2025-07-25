@@ -173,7 +173,9 @@ if st.session_state.mode == "Set Vibe":
 elif st.session_state.mode == "Song":
     st.markdown("<h1>🎬 Now Playing</h1>", unsafe_allow_html=True)
     if st.session_state.video_url:
+        st.markdown('<div class="custom-video-container">', unsafe_allow_html=True)
         st.video(st.session_state.video_url)
+        st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.warning("No video selected.")
     if st.button("🔙 Back to Set Vibe"):
@@ -186,8 +188,7 @@ elif st.session_state.mode == "Song":
 elif st.session_state.mode == "Detect Mood":
     st.markdown("<h1>🎭Mood Detection</h1>", unsafe_allow_html=True)
     st.write("""
-    1. **Click “Photo”** to check your mood.  
-    4. Then press **“Now Lets set you VIBE”** to get your song recommendations.  
+    - **Click “Photo”** to check your mood.  
     """)
 
     img_file_buffer = st.camera_input("Take a photo")
@@ -227,7 +228,7 @@ elif st.session_state.mode == "Detect Mood":
                 
                 if song_emotion:
                     st.subheader("🎶 Detected Vibe:")
-                    st.success(f"**{song_emotion}** Songs, **{detected_emotion}** Mood")
+                    st.success(f" Feeling **{detected_emotion}** ? Let's Play **{song_emotion}** Songs..😉")
                     st.session_state.query_input = song_emotion + ' songs'
                     st.session_state.user_mood = True
                     st.session_state.mode = 'Set Vibe'
