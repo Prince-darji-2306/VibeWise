@@ -100,7 +100,7 @@ h1
     padding-bottom: 0px;
 }      
 
-[data-testid="stAppViewBlockContainer"] {
+[data-testid="stMainBlockContainer"] {
     padding-top: 13px !important;
     padding-bottom: 50px !important;
 }
