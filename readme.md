@@ -16,6 +16,23 @@ A mood-aware music recommendation app that tunes into your emotions and curates 
 - **Hugging Face Transformers**: Understands song-related queries.
 - **FAISS**: Fast, vector-based song recommendations.
 
+## 📁 Project Structure
+
+```
+VibeWise/
+├── myapp.py              # Main Streamlit application entry point
+├── core/                 # Core business logic package
+│   ├── __init__.py
+│   ├── config.py         # Configuration settings
+│   ├── models.py         # Model loading and caching
+│   ├── services.py       # External API clients (iTunes, YouTube)
+│   └── recommender.py    # Recommendation engine
+├── static/               # Static assets (CSS, images)
+├── model/                # Model files (FAISS index, metadata)
+├── requirements.txt      # Python dependencies
+└── readme.md            # Project documentation
+```
+
 ## 🚀 Getting Started
 
 1. **Clone the Repository**:
@@ -31,13 +48,13 @@ A mood-aware music recommendation app that tunes into your emotions and curates 
 3. **Run the App**:
 
    ```bash
-   streamlit run app.py
+   streamlit run myapp.py
    ```
 
 ## 🔗 Links
 
-- 📂 **GitHub**: https://github.com/Prince-darji-2306/VibeWise
-- 🌐 **Try it Live**: https://vibewise.streamlit.app/
+- **GitHub**: https://github.com/Prince-darji-2306/VibeWise
+- **Try it Live**: https://vibewise.streamlit.app/
 
 ## 🤝 Contributing
 

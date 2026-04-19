@@ -1,19 +1,69 @@
+import os
 import time
+import faiss
+import requests
 import numpy as np
+import pandas as pd
 from PIL import Image
 import streamlit as st
 from deepface import DeepFace
+from sklearn.preprocessing import normalize
+from huggingface_hub import hf_hub_download
+from huggingface_hub import snapshot_download
+from sentence_transformers import SentenceTransformer
+from youtubesearchpython import VideosSearch
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from core.models import (load_embedding_model,
-                         load_faiss_index,
-                         load_song_metadata)
+CONFIG = st.secrets['MODEL']
+INDEX_PATH = hf_hub_download(repo_id=CONFIG, filename="model/song_index.faiss")
+CSV_PATH = hf_hub_download(repo_id=CONFIG, filename="model/song_metadata.csv")
 
-from core.recommender import (get_recommendations,
-                             enrich_recommendations_parallel)
-                             
-from core.config import (EMOTION_MAPPING,
-                         HAPPY_CONFIDENCE_THRESHOLD,
-                         SAD_CONFIDENCE_THRESHOLD)  
+@st.cache_resource
+def load_model():
+    snapshot_dir = snapshot_download(
+        repo_id="Prince-2025/VibeWise-Model",
+        repo_type="model",
+        local_dir="hf_model",
+        allow_patterns=["model/song_recommender_model/*"]
+    )
+    model_dir = os.path.join(snapshot_dir, "model", "song_recommender_model")
+    return SentenceTransformer(model_dir)
+
+@st.cache_resource
+def load_index():
+    return faiss.read_index(INDEX_PATH)
+
+@st.cache_data
+def load_data():
+    df = pd.read_csv(CSV_PATH)
+    if 'searchq' not in df.columns:
+        df['searchq'] = (df['song'] + " by " + df['artist']).str.strip()
+    return df
+
+def recommend(query, top_k=5):
+    emb = normalize(model.encode([query]))
+    _, I = index.search(emb, top_k)
+    return df.iloc[I[0]]
+
+def get_cover(song, artist=None):
+    q = song + (f" {artist}" if artist else "")
+    try:
+        r = requests.get(f"https://itunes.apple.com/search?term={q}&limit=1", timeout=2).json()
+        if r["resultCount"]:
+            return r["results"][0]["artworkUrl100"].replace("100x100", "600x600")
+    except:
+        return None
+    return None
+
+def get_youtube(song, artist=None):
+    q = song + (f" {artist}" if artist else "")
+    try:
+        results = VideosSearch(q, limit=1).result()["result"]
+        if results:
+            return results[0]["thumbnails"][0]["url"], results[0]["link"]
+    except:
+        return None, None
+    return None, None
 
 # Initializing session state
 if "mode" not in st.session_state:
@@ -62,7 +112,7 @@ if st.session_state.mode == "Set Vibe":
             label_visibility="hidden"
         )
         
-        df = load_song_metadata()
+        df = load_data()
         matches = []
         if len(query_input) > 3:
             matches = df[df['searchq'].str.lower().str.startswith(query_input.lower())]['searchq'].unique().tolist()
@@ -77,12 +127,25 @@ if st.session_state.mode == "Set Vibe":
         st.markdown("<div class='mbutton'></div>", unsafe_allow_html=True)
         if st.button("Recommend", use_container_width=True) and query_input.strip() != '' or st.session_state.user_mood:
             with st.spinner("Setting Vibe..."):
-                model = load_embedding_model()
-                index = load_faiss_index()
+                model = load_model()
+                index = load_index()
 
-                recs = get_recommendations(query_input, model, index, df)
-                results = enrich_recommendations_parallel(recs)
+                recs = recommend(query_input)
 
+                def enrich(r):
+                    cover = get_cover(r['song'], r['artist']) or None
+                    thumb, yt_link = get_youtube(r['song'], r['artist'])
+                    return {
+                        "song": r["song"],
+                        "artist": r["artist"],
+                        "text": r["text"],
+                        "cover": cover or thumb,
+                        "link": yt_link
+                    }
+
+                with ThreadPoolExecutor(max_workers=5) as ex:
+                    futures = [ex.submit(enrich, row) for _, row in recs.iterrows()]
+                    results = [f.result() for f in as_completed(futures)]
                 st.session_state.user_mood = None
                 st.session_state.results = results
 
@@ -145,13 +208,24 @@ elif st.session_state.mode == "Detect Mood":
                 detected_emotion = result['dominant_emotion']
                 confidence = result['emotion'][detected_emotion]
 
-                song_emotion = EMOTION_MAPPING.get(detected_emotion.lower(), 'chill')
+                emotion_mapping = {
+                    'happy': 'happy',
+                    'sad': 'sad',
+                    'angry': 'angry',
+                    'neutral': 'chill',
+                    'surprise': 'energetic',
+                    'fear': 'motivational',
+                    'disgust': 'romantic'
+                }
 
-                if song_emotion == 'happy' and confidence < HAPPY_CONFIDENCE_THRESHOLD:
+                song_emotion = emotion_mapping.get(detected_emotion.lower(), 'chill')
+
+                if song_emotion == 'happy' and confidence < 85:
                     song_emotion = 'romantic'
-                elif song_emotion == 'sad' and confidence < SAD_CONFIDENCE_THRESHOLD:
+                elif song_emotion == 'sad' and confidence < 80:
                     song_emotion = 'chill'
 
+                
                 if song_emotion:
                     st.subheader("🎶 Detected Vibe:")
                     st.success(f" Feeling **{detected_emotion}** ? Let's Play **{song_emotion}** Songs..😉")
