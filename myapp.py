@@ -1,8 +1,16 @@
 import time
+import logging
 import numpy as np
 from PIL import Image
 import streamlit as st
 from deepface import DeepFace
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 from core.models import (load_embedding_model,
                          load_faiss_index,
@@ -37,9 +45,11 @@ def local_css(file_name):
 local_css("static/css/mstyle.css")
 
 st.sidebar.markdown("## Navigation")
+logger.info(f"[Navigation] Current mode: {st.session_state.mode}, video_url: {st.session_state.video_url}")
 if st.sidebar.button("Set Vibe 🎧"):
     st.session_state.mode = "Set Vibe"
 if st.sidebar.button("Song 🎬"):
+    logger.info(f"[Navigation] Song button clicked, video_url: '{st.session_state.video_url}'")
     if st.session_state.video_url:
         st.session_state.mode = "Song"
     else:
@@ -99,8 +109,11 @@ if st.session_state.mode == "Set Vibe":
                     </div>
                 </div>
             """, unsafe_allow_html=True)
+            logger.info(f"[UI] Song {i}: {r['song']} by {r['artist']}, link: {r.get('link', 'None')}")
             if st.button(f"▶ Watch Now", key=f"song_{i}"):
+                logger.info(f"[UI] Watch Now clicked for song {i}, setting video_url: '{r.get('link')}'")
                 st.session_state.video_url = r["link"]
+                logger.info(f"[UI] Mode changing to Song, video_url now: '{st.session_state.video_url}'")
                 st.session_state.mode = "Song"
                 st.rerun()
 
@@ -108,12 +121,16 @@ if st.session_state.mode == "Set Vibe":
 # MODE: SONG VIEW
 # ============================
 elif st.session_state.mode == "Song":
+    logger.info(f"[Song Mode] video_url: '{st.session_state.video_url}'")
     st.markdown("<h1>🎬 Now Playing</h1>", unsafe_allow_html=True)
     if st.session_state.video_url:
+        logger.info(f"[Song Mode] Attempting to play video: {st.session_state.video_url}")
         st.markdown('<div class="custom-video-container">', unsafe_allow_html=True)
         st.video(st.session_state.video_url)
         st.markdown('</div>', unsafe_allow_html=True)
+        logger.info("[Song Mode] Video player rendered successfully")
     else:
+        logger.error("[Song Mode] No video URL available to play!")
         st.warning("No video selected.")
     if st.button("🔙 Back to Set Vibe"):
         st.session_state.mode = "Set Vibe"

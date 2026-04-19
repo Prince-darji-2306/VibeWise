@@ -3,7 +3,7 @@
 import streamlit as st
 
 # Model configuration from Streamlit secrets
-MODEL_REPO = st.secrets.get('MODEL', 'Prince-2025/VibeWise-Model')
+MODEL_REPO = 'Prince-2025/VibeWise-Model'
 
 # File paths within the Hugging Face repository
 INDEX_FILENAME = "model/song_index.faiss"
